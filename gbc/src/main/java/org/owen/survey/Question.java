@@ -69,9 +69,9 @@ public class Question {
 					Question q = new Question();
 					q.setQuestionId(rs.getInt("que_id"));
 					q.setQuestionText(rs.getString("question"));
-					q.setSectionId(rs.getInt("section_id"));
-					q.setQuestionType(QuestionType.get(rs.getInt("qTypeId")));
-					q.setMandatory(rs.getInt("mFlag"));
+					q.setSectionId(rs.getInt("que_sec"));
+					q.setQuestionType(QuestionType.get(rs.getInt("que_type")));
+					q.setMandatory(rs.getInt("m_flag"));
 					questionList.add(q);
 				}
 			}
@@ -89,13 +89,15 @@ public class Question {
 		try (CallableStatement cstmt = dch.masterDS.getConnection().prepareCall("{call getOptions()}")) {
 			try (ResultSet rs = cstmt.executeQuery()) {
 				while (rs.next()) {
-					int questionId = rs.getInt("question_id");
+					int questionId = rs.getInt("que_id");
 					if (result.containsKey(questionId)) {
 						Map<Integer, String> oMap = result.get(questionId);
-						oMap.put(rs.getInt("opt_id"), rs.getString("opt_text"));
+						oMap.put(rs.getInt("option_id"), rs.getString("option_text_display"));
+						result.put(questionId, oMap);
 					} else {
 						Map<Integer, String> oMap = new TreeMap<>();
-						oMap.put(rs.getInt("opt_id"), rs.getString("opt_text"));
+						oMap.put(rs.getInt("option_id"), rs.getString("option_text_display"));
+						result.put(questionId, oMap);
 					}
 				}
 			}

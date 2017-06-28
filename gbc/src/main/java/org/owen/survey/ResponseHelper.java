@@ -2,6 +2,7 @@ package org.owen.survey;
 
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
+import java.sql.Types;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -17,7 +18,7 @@ public class ResponseHelper {
 
 			for (int i = 0; i < responseList.size(); i++) {
 				Response respObj = responseList.get(i);
-				Logger.getLogger(ResponseHelper.class).debug("Entering saveAllResponses (TEXT) for question ID" + respObj.getQuestionId());
+				Logger.getLogger(ResponseHelper.class).debug("Entering saveAllResponses for question ID" + respObj.getQuestionId());
 				boolean flag = saveTextResponse(respObj);
 				allResponsesSaved = (allResponsesSaved || flag);
 			}
@@ -31,8 +32,16 @@ public class ResponseHelper {
 		int questionId = respObj.getQuestionId();
 		try (CallableStatement cstmt = dch.masterDS.getConnection().prepareCall("{call saveResponse(?,?,?)}")) {
 			cstmt.setInt("queId", questionId);
-			cstmt.setInt("optionId", respObj.getOptionId());
-			cstmt.setString("comment", respObj.getComment());
+			if (respObj.getOptionId() == 0) {
+				cstmt.setNull("optId", Types.INTEGER);
+			} else {
+				cstmt.setObject("optId", respObj.getOptionId());
+			}
+			if (respObj.getComment().isEmpty()) {
+				cstmt.setNull("commTxt", Types.VARCHAR);
+			} else {
+				cstmt.setString("commTxt", respObj.getComment());
+			}
 			Logger.getLogger(ResponseHelper.class).debug("SQL statement for question : " + questionId + " : " + cstmt.toString());
 			try (ResultSet rs = cstmt.executeQuery()) {
 				if (rs.next()) {

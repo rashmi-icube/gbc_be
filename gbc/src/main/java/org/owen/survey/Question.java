@@ -60,27 +60,42 @@ public class Question {
 		this.mandatory = mandatory;
 	}
 
-	public List<Question> getQuestionList() {
+	public Map<Integer, List<Question>> getQuestionList() {
 		DatabaseConnectionHelper dch = DatabaseConnectionHelper.getDBHelper();
-		List<Question> questionList = new ArrayList<>();
+		Map<Integer, List<Question>> result = new HashMap<>();
 		try (CallableStatement cstmt = dch.masterDS.getConnection().prepareCall("{call getQuestion()}")) {
 			try (ResultSet rs = cstmt.executeQuery()) {
 				while (rs.next()) {
-					Question q = new Question();
-					q.setQuestionId(rs.getInt("que_id"));
-					q.setQuestionText(rs.getString("question"));
-					q.setSectionId(rs.getInt("que_sec"));
-					q.setQuestionType(QuestionType.get(rs.getInt("que_type")));
-					q.setMandatory(rs.getInt("m_flag"));
-					questionList.add(q);
+					int sectionId = rs.getInt("que_sec");
+					if(result.containsKey(sectionId)){
+						List<Question> qList = result.get(sectionId);
+						Question q = new Question();
+						q.setQuestionId(rs.getInt("que_id"));
+						q.setQuestionText(rs.getString("question"));
+						q.setSectionId(rs.getInt("que_sec"));
+						q.setQuestionType(QuestionType.get(rs.getInt("que_type")));
+						q.setMandatory(rs.getInt("m_flag"));
+						qList.add(q);
+						result.put(sectionId, qList);
+					}else {
+						List<Question> qList = new ArrayList<>();
+						Question q = new Question();
+						q.setQuestionId(rs.getInt("que_id"));
+						q.setQuestionText(rs.getString("question"));
+						q.setSectionId(rs.getInt("que_sec"));
+						q.setQuestionType(QuestionType.get(rs.getInt("que_type")));
+						q.setMandatory(rs.getInt("m_flag"));
+						qList.add(q);
+						result.put(sectionId, qList);
+					}					
 				}
 			}
-			Logger.getLogger(Question.class).debug("Fetched " + questionList.size() + " questions.");
+			Logger.getLogger(Question.class).debug("Fetched questions.");
 
 		} catch (SQLException e) {
 			Logger.getLogger(Question.class).error("Exception while retrieving the questionList", e);
 		}
-		return questionList;
+		return result;
 	}
 
 	public Map<Integer, Map<Integer, String>> getOptionsList() {

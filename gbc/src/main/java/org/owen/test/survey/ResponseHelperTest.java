@@ -45,7 +45,7 @@ public class ResponseHelperTest {
 		respList.add(rObj5);
 
 		ResponseHelper rh = new ResponseHelper();
-		Assert.assertTrue(rh.saveAllResponses(respList));
+		Assert.assertTrue(rh.saveResponses(respList));
 
 	}
 

@@ -1,7 +1,10 @@
 package org.owen.survey;
 
 import java.sql.CallableStatement;
+import java.sql.Connection;
+
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.sql.Types;
 import java.util.List;
 
@@ -9,6 +12,43 @@ import org.apache.log4j.Logger;
 import org.owen.helper.DatabaseConnectionHelper;
 
 public class ResponseHelper {
+
+	public boolean saveResponses(List<Response> responseList) {
+
+		boolean allResponsesSaved = true;
+
+		if (!responseList.isEmpty()) {
+			try {
+				Logger.getLogger(ResponseHelper.class).debug("Entering saveAllResponses");
+				DatabaseConnectionHelper dch = DatabaseConnectionHelper.getDBHelper();
+				Connection con = dch.masterDS.getConnection();
+				Statement stmt = con.createStatement();
+				String query = "";
+				for (int i = 0; i < responseList.size(); i++) {
+					Response respObj = responseList.get(i);
+					String comment = respObj.getComment() == "" ? null : ("'" + respObj.getComment() + "'");
+					query = "insert into response(que_id, option_id, commnet_text, response_time) values(" + respObj.getQuestionId() + ","
+							+ (respObj.getOptionId() == 0 ? null : respObj.getOptionId()) + "," + comment + ", CURRENT_TIMESTAMP())";
+					Logger.getLogger(ResponseHelper.class).debug("Query ::: " + query);
+					stmt.addBatch(query);
+				}
+				con.setAutoCommit(false);
+				/*ResultSet rs = stmt.executeQuery("select * from response");
+				rs.last();
+				System.out.println("rows before batch execution= " + rs.getRow());*/
+				stmt.executeBatch();
+				/*rs = stmt.executeQuery("select * from response");
+				rs.last();
+				System.out.println("rows after batch execution= " + rs.getRow());*/
+				con.commit();
+
+			} catch (Exception e) {
+				allResponsesSaved = false;
+				Logger.getLogger(ResponseHelper.class).error("Exception while saving the responses" , e);
+			}
+		}
+		return allResponsesSaved;
+	}
 
 	public boolean saveAllResponses(List<Response> responseList) {
 		boolean allResponsesSaved = true;

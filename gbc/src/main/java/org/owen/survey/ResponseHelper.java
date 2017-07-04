@@ -41,6 +41,7 @@ public class ResponseHelper {
 				rs.last();
 				System.out.println("rows after batch execution= " + rs.getRow());*/
 				con.commit();
+				con.close();
 
 			} catch (Exception e) {
 				allResponsesSaved = false;
